@@ -1,0 +1,9 @@
+streamlit
+pdfplumber
+langchain
+langchain_groq
+python-dotenv
+pandas
+rouge
+bert_score
+hf_xet
