@@ -17,7 +17,7 @@ default_api_key = os.getenv("GROQ_API_KEY")
 
 # Streamlit UI
 st.set_page_config(page_title="PDF Summarizer", layout="wide")
-st.title("📄 Research Paper Summarizer")
+st.title("📄⚡ Research Paper Summarizer with Real-time Evaluation")
 
 # Initialize session state
 st.session_state.api_key = default_api_key
@@ -27,13 +27,12 @@ uploaded_files = st.file_uploader(
     "📂 Upload PDF(s)", type=["pdf"], accept_multiple_files=True
 )
 
-# **New**: Select summarization style
+# Select summarization style
 summary_type = st.selectbox(
     "📝 Choose Summary Type",
     ["📌 Short Summary", "🔍 Key Insights"],
 )
 
-# **New**: Different Prompt Templates
 PROMPT_TEMPLATES = {
     "📌 Short Summary": """
     Summarize the given research paper in a **concise** manner. Focus on the main idea, methodology, key findings, and conclusions. Keep the summary within **300 words**.
@@ -219,12 +218,42 @@ if "summaries" in st.session_state and st.session_state.summaries:
         with st.expander("ℹ️ What do these evaluation scores mean?"):
             st.markdown(
             """
-    - **BERTScore**: Focuses on meaning by comparing contextual word embeddings.
-    - **F1 Score**: Balances capturing key info (recall) with avoiding irrelevant content (precision).
-    - **Recall**: Measures how much important info from the original is present in the summary.
-    - **Accuracy**: General correctness score (less relevant for text tasks).
-    - **ROUGE-1**: Matches individual words between summaries.
-    - **ROUGE-2**: Matches two-word sequences, reflecting phrase overlap.
-    - **ROUGE-L**: Considers the longest shared word sequence, showing structural similarity.
+    - **BERTScore (F1)**: Measures semantic similarity between the generated summary and the original text using embeddings.The F1-score balances precision and recall — higher scores mean better meaning preservation.
+
+        - BERTScore (F1) — Measures semantic similarity:
+            - 0.90 – 1.00 → Excellent
+            - 0.85 – 0.90 → Strong
+            - 0.80 – 0.85 → Fair
+            - < 0.80 → Weak semantic match
+
+        (Note: We use BERTScore F1, which balances precision and recall for meaningful interpretation.)
+
+    - **ROUGE-1**: Compares unigrams (single words) between reference and generated summaries. Reflects basic word-level overlap.
+    - **ROUGE-2**: Measures bigrams (two-word sequences) to capture short phrase-level similarity.
+    - **ROUGE-L**: Focuses on the Longest Common Subsequence, showing how well the generated summary follows the structure of the original.
+        - ROUGE Scores — Measure word/phrase overlap:
+        
+            - ROUGE-1 (Unigrams):
+                * 0.45 → Excellent
+                * 0.30 – 0.45 → Good
+                * 0.15 – 0.30 → Weak
+                * < 0.15 → Poor
+            - ROUGE-2 (Bigrams):
+                * 0.25 → Excellent
+                * 0.15 – 0.25 → Fair
+                * < 0.15 → Weak
+            - ROUGE-L (Longest Common Subsequence):
+                * 0.35 → Good
+                * 0.20 – 0.35 → Fair
+                * < 0.20 → Weak
+    """
+        )
+        
+        with st.expander("ℹ️ Why BERTScore is High but ROUGE is Low?"):
+            st.markdown(
+            """
+The generated summaries are **abstractive**, meaning they rephrase the original text while preserving meaning. 
+As a result, BERTScore (which measures **semantic similarity**) is typically high, while ROUGE (which relies on exact word overlap) 
+may be low — this doesn’t indicate poor quality, just that the summaries are paraphrased and not **extractive** in nature.
     """
         )
